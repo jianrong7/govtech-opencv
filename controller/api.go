@@ -62,7 +62,7 @@ func SuspendStudent(c *fiber.Ctx) error {
 	if err := c.BodyParser(s); err != nil {
 		return err
 	}
-	db.DB.Where("email = ?", s.Student).First(&model.Student{}).Update("isSuspended", true)
+	db.DB.Where("email = ?", s.Student).First(&model.Student{}).Update("is_suspended", true)
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
