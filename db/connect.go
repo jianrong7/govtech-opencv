@@ -51,12 +51,13 @@ func ConnectToDB() {
 	}
 
 	// remove after dev is done
-	// DB.Migrator().DropTable(&model.Student{}, &model.Teacher{})
+	DB.Migrator().DropTable(&model.Student{}, &model.Teacher{})
+	DB.Migrator().DropTable("teacher_students")
 
 	DB.AutoMigrate(&model.Student{}, &model.Teacher{})
 	fmt.Println("Database migrated")
 
 	// remove after dev is done
-	// seedTeachersTable()
-	// seedStudentsTable()
+	seedTeachersTable()
+	seedStudentsTable()
 }
