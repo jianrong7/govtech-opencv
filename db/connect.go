@@ -13,7 +13,7 @@ import (
 )
 
 var teacherEmails []string = []string{"teacherken@gmail.com", "teacherjoe@gmail.com"}
-var studentEmails []string = []string{"studentjon@gmail.com", "studenthon@gmail.com", "commonstudent1@gmail.com", "commonstudent2@gmail.com", "student_only_under_teacher_ken@gmail.com"}
+var studentEmails []string = []string{"studentjon@gmail.com", "studenthon@gmail.com", "studentagnes@gmail.com", "commonstudent1@gmail.com", "commonstudent2@gmail.com", "student_only_under_teacher_ken@gmail.com"}
 
 func seedTeachersTable() {
 	for _, email := range teacherEmails {

@@ -3,13 +3,14 @@ package controller
 import (
 	"govtech-opencv/db"
 	"govtech-opencv/model"
+	"govtech-opencv/utils"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
-type RegisterStruct struct {
+type RegisterReq struct {
 	Students []string `json:"students"`
 	Teacher  string   `json:"teacher"`
 }
@@ -17,7 +18,7 @@ type RegisterStruct struct {
 // add error handling and test cases
 // handle invalid teacher or student use case
 func Register(c *fiber.Ctx) error {
-	s := new(RegisterStruct)
+	s := new(RegisterReq)
 	if err := c.BodyParser(s); err != nil {
 		return err
 	}
@@ -53,12 +54,12 @@ func GetCommonStudents(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"students": commonStudentEmails})
 }
 
-type SuspendStudentStruct struct {
+type SuspendStudentReq struct {
 	Student string `json:"student"`
 }
 
 func SuspendStudent(c *fiber.Ctx) error {
-	s := new(SuspendStudentStruct)
+	s := new(SuspendStudentReq)
 	if err := c.BodyParser(s); err != nil {
 		return err
 	}
@@ -66,6 +67,31 @@ func SuspendStudent(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+type RetrieveForNotificationsReq struct {
+	Teacher      string `json:"teacher"`
+	Notification string `json:"notification"`
+}
+
 func RetrieveForNotifications(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{"status": "success", "message": "RetrieveForNotifications", "data": nil})
+	var registeredStudentEmails []string
+	var validStudentsFromNotification []string
+	s := new(RetrieveForNotificationsReq)
+	if err := c.BodyParser(s); err != nil {
+		return err
+	}
+
+	emailsFromNotification := utils.ExtractEmailsFromNotification(s.Notification)
+	db.DB.Raw(`SELECT DISTINCT students.email as studentEmail
+		FROM students
+		WHERE students.is_suspended = FALSE AND students.email IN ?`, emailsFromNotification).Scan(&validStudentsFromNotification)
+
+	db.DB.Raw(`SELECT DISTINCT students.email as studentEmail
+		FROM students
+		JOIN teacher_students ON students.id = teacher_students.student_id
+		JOIN teachers ON teacher_students.teacher_id = teachers.id
+		WHERE students.is_suspended = FALSE AND (teachers.email = ? OR students.email IN ?)`, s.Teacher, emailsFromNotification).Scan(&registeredStudentEmails)
+
+	registeredStudentEmails = append(registeredStudentEmails, (validStudentsFromNotification)...)
+
+	return c.JSON(fiber.Map{"recipients": registeredStudentEmails})
 }
