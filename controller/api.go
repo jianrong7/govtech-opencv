@@ -15,6 +15,7 @@ type RegisterStruct struct {
 }
 
 // add error handling and test cases
+// handle invalid teacher or student use case
 func Register(c *fiber.Ctx) error {
 	s := new(RegisterStruct)
 	if err := c.BodyParser(s); err != nil {
@@ -43,7 +44,7 @@ func GetCommonStudents(c *fiber.Ctx) error {
 	queryString = strings.Replace(queryString, "%40", "@", -1)
 	teacherEmails := strings.Split(queryString, "&")
 
-	db.DB.Raw(`SELECT students.email as studentEmail
+	db.DB.Raw(`SELECT DISTINCT students.email as studentEmail
 		FROM students
 		JOIN teacher_students ON students.id = teacher_students.student_id
 		JOIN teachers ON teacher_students.teacher_id = teachers.id
