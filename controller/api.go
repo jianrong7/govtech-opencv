@@ -10,20 +10,22 @@ import (
 	"gorm.io/gorm"
 )
 
-type RegisterReq struct {
-	Students []string `json:"students"`
-	Teacher  string   `json:"teacher"`
-}
-
 // add test cases
 func Register(c *fiber.Ctx) error {
+	type RegisterReq struct {
+		Students []string `json:"students"`
+		Teacher  string   `json:"teacher"`
+	}
+
 	s := new(RegisterReq)
 	if err := c.BodyParser(s); err != nil {
-		return err
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "invalid request"})
 	}
+
 	teacherEmail := s.Teacher
 	var teacher model.Teacher
 	err := db.DB.Where("email = ?", teacherEmail).First(&teacher).Error
+
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "teacher not found"})
 	}
@@ -58,6 +60,10 @@ func GetCommonStudents(c *fiber.Ctx) error {
 	queryString = strings.Replace(queryString, "%40", "@", -1)
 	teacherEmails := strings.Split(queryString, "&")
 
+	if len(teacherEmails) == 0 {
+		return c.JSON(fiber.Map{"students": commonStudentEmails})
+	}
+
 	db.DB.Raw(`SELECT DISTINCT students.email as studentEmail
 		FROM students
 		JOIN teacher_students ON students.id = teacher_students.student_id
@@ -69,27 +75,34 @@ func GetCommonStudents(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"students": commonStudentEmails})
 }
 
-type SuspendStudentReq struct {
-	Student string `json:"student"`
-}
-
 func SuspendStudent(c *fiber.Ctx) error {
+	type SuspendStudentReq struct {
+		Student string `json:"student"`
+	}
+
 	s := new(SuspendStudentReq)
 	if err := c.BodyParser(s); err != nil {
-		return err
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "invalid request"})
 	}
-	db.DB.Where("email = ?", s.Student).First(&model.Student{}).Update("is_suspended", true)
+
+	err := db.DB.Where("email = ?", s.Student).First(&model.Student{}).Update("is_suspended", true).Error
+
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "student not found"})
+	}
+
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-type RetrieveForNotificationsReq struct {
-	Teacher      string `json:"teacher"`
-	Notification string `json:"notification"`
-}
-
 func RetrieveForNotifications(c *fiber.Ctx) error {
+	type RetrieveForNotificationsReq struct {
+		Teacher      string `json:"teacher"`
+		Notification string `json:"notification"`
+	}
+
 	var registeredStudentEmails []string
 	var validStudentsFromNotification []string
+
 	s := new(RetrieveForNotificationsReq)
 	if err := c.BodyParser(s); err != nil {
 		return err
