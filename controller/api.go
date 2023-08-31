@@ -105,15 +105,17 @@ func RetrieveForNotifications(c *fiber.Ctx) error {
 
 	s := new(RetrieveForNotificationsReq)
 	if err := c.BodyParser(s); err != nil {
-		return err
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "invalid request"})
 	}
 
 	emailsFromNotification := utils.ExtractEmailsFromNotification(s.Notification)
-	db.DB.Raw(`SELECT DISTINCT students.email as studentEmail
+	if len(emailsFromNotification) > 0 {
+		db.DB.Raw(`SELECT DISTINCT students.email as studentEmail
 		FROM students
 		WHERE students.is_suspended = FALSE
 		AND students.email IN ?
 		AND students.deleted_at IS NULL`, emailsFromNotification).Scan(&validStudentsFromNotification)
+	}
 
 	db.DB.Raw(`SELECT DISTINCT students.email as studentEmail
 		FROM students
