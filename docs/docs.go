@@ -9,30 +9,207 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "email": "fiber@swagger.io"
-        },
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/api/commonstudents": {
+            "get": {
+                "description": "Get common students from a list of teachers.",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get common students from a list of teachers.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Teacher",
+                        "name": "teacher",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "students",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/register": {
+            "post": {
+                "description": "Register students to a teacher.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Register students to a teacher.",
+                "parameters": [
+                    {
+                        "description": "Register",
+                        "name": "register",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RegisterReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "invalid request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "teacher not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/retrievefornotifications": {
+            "post": {
+                "description": "Retrieve students who can receive notifications from a teacher.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Retrieve students who can receive notifications from a teacher.",
+                "parameters": [
+                    {
+                        "description": "Retrieve",
+                        "name": "retrievefornotifications",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RetrieveForNotificationsReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "recipients",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/suspend": {
+            "post": {
+                "description": "Suspend a student.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Suspend a student.",
+                "parameters": [
+                    {
+                        "description": "Suspend",
+                        "name": "suspend",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuspendStudentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "invalid request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "student not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.RegisterReq": {
+            "type": "object",
+            "properties": {
+                "students": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "teacher": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RetrieveForNotificationsReq": {
+            "type": "object",
+            "properties": {
+                "notification": {
+                    "type": "string"
+                },
+                "teacher": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SuspendStudentReq": {
+            "type": "object",
+            "properties": {
+                "student": {
+                    "type": "string"
+                }
+            }
+        }
+    }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "localhost:3000",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Fiber Example API",
-	Description:      "This is a sample swagger for Fiber",
+	Title:            "govtech-opencv API",
+	Description:      "Documentation for the govtech-opencv API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

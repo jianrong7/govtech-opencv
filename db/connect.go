@@ -2,7 +2,7 @@ package db
 
 import (
 	"fmt"
-	"govtech-opencv/model"
+	"govtech-opencv/app/model"
 	"log"
 	"os"
 	"time"

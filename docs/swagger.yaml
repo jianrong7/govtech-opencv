@@ -1,15 +1,128 @@
 basePath: /
-host: localhost:8080
+definitions:
+  dto.RegisterReq:
+    properties:
+      students:
+        items:
+          type: string
+        type: array
+      teacher:
+        type: string
+    type: object
+  dto.RetrieveForNotificationsReq:
+    properties:
+      notification:
+        type: string
+      teacher:
+        type: string
+    type: object
+  dto.SuspendStudentReq:
+    properties:
+      student:
+        type: string
+    type: object
+host: localhost:3000
 info:
-  contact:
-    email: fiber@swagger.io
-    name: API Support
-  description: This is a sample swagger for Fiber
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
-  title: Fiber Example API
+  contact: {}
+  description: Documentation for the govtech-opencv API
+  title: govtech-opencv API
   version: "1.0"
-paths: {}
+paths:
+  /api/commonstudents:
+    get:
+      description: Get common students from a list of teachers.
+      parameters:
+      - description: Teacher
+        in: query
+        name: teacher
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: students
+          schema:
+            type: string
+        "400":
+          description: invalid request
+          schema:
+            type: string
+      summary: Get common students from a list of teachers.
+  /api/register:
+    post:
+      consumes:
+      - application/json
+      description: Register students to a teacher.
+      parameters:
+      - description: Register
+        in: body
+        name: register
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterReq'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: invalid request
+          schema:
+            type: string
+        "404":
+          description: teacher not found
+          schema:
+            type: string
+      summary: Register students to a teacher.
+  /api/retrievefornotifications:
+    post:
+      consumes:
+      - application/json
+      description: Retrieve students who can receive notifications from a teacher.
+      parameters:
+      - description: Retrieve
+        in: body
+        name: retrievefornotifications
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RetrieveForNotificationsReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: recipients
+          schema:
+            type: string
+        "400":
+          description: invalid request
+          schema:
+            type: string
+      summary: Retrieve students who can receive notifications from a teacher.
+  /api/suspend:
+    post:
+      consumes:
+      - application/json
+      description: Suspend a student.
+      parameters:
+      - description: Suspend
+        in: body
+        name: suspend
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SuspendStudentReq'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: invalid request
+          schema:
+            type: string
+        "404":
+          description: student not found
+          schema:
+            type: string
+      summary: Suspend a student.
 swagger: "2.0"

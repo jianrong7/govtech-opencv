@@ -1,8 +1,9 @@
 package controller
 
 import (
+	"govtech-opencv/app/dto"
+	"govtech-opencv/app/model"
 	"govtech-opencv/db"
-	"govtech-opencv/model"
 	"govtech-opencv/utils"
 	"strings"
 
@@ -10,14 +11,19 @@ import (
 	"gorm.io/gorm"
 )
 
-// add test cases
+// Register students to a teacher. If student does not exist, create it.
+// If teacher does not exist, return 404.
+// @Description Register students to a teacher.
+// @Summary Register students to a teacher.
+// @Accept json
+// @Produce json
+// @Param register body dto.RegisterReq true "Register"
+// @Success 204
+// @Failure 400 {string} string "invalid request"
+// @Failure 404 {string} string "teacher not found"
+// @Router /api/register [post]
 func Register(c *fiber.Ctx) error {
-	type RegisterReq struct {
-		Students []string `json:"students"`
-		Teacher  string   `json:"teacher"`
-	}
-
-	s := new(RegisterReq)
+	s := new(dto.RegisterReq)
 	if err := c.BodyParser(s); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "invalid request"})
 	}
@@ -52,6 +58,14 @@ func Register(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+// Get common students from a list of teachers.
+// @Description Get common students from a list of teachers.
+// @Summary Get common students from a list of teachers.
+// @Produce json
+// @Param teacher query string true "Teacher"
+// @Success 200 {object} string "students"
+// @Failure 400 {string} string "invalid request"
+// @Router /api/commonstudents [get]
 func GetCommonStudents(c *fiber.Ctx) error {
 	var commonStudentEmails []string
 
@@ -75,12 +89,18 @@ func GetCommonStudents(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"students": commonStudentEmails})
 }
 
+// Suspend a student. If student does not exist, return 404.
+// @Description Suspend a student.
+// @Summary Suspend a student.
+// @Accept json
+// @Produce json
+// @Param suspend body dto.SuspendStudentReq true "Suspend"
+// @Success 204
+// @Failure 400 {string} string "invalid request"
+// @Failure 404 {string} string "student not found"
+// @Router /api/suspend [post]
 func SuspendStudent(c *fiber.Ctx) error {
-	type SuspendStudentReq struct {
-		Student string `json:"student"`
-	}
-
-	s := new(SuspendStudentReq)
+	s := new(dto.SuspendStudentReq)
 	if err := c.BodyParser(s); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "invalid request"})
 	}
@@ -94,16 +114,20 @@ func SuspendStudent(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+// Retrieve students who can receive notifications from a teacher.
+// @Description Retrieve students who can receive notifications from a teacher.
+// @Summary Retrieve students who can receive notifications from a teacher.
+// @Accept json
+// @Produce json
+// @Param retrievefornotifications body dto.RetrieveForNotificationsReq true "Retrieve"
+// @Success 200 {object} string "recipients"
+// @Failure 400 {string} string "invalid request"
+// @Router /api/retrievefornotifications [post]
 func RetrieveForNotifications(c *fiber.Ctx) error {
-	type RetrieveForNotificationsReq struct {
-		Teacher      string `json:"teacher"`
-		Notification string `json:"notification"`
-	}
-
 	var registeredStudentEmails []string
 	var validStudentsFromNotification []string
 
-	s := new(RetrieveForNotificationsReq)
+	s := new(dto.RetrieveForNotificationsReq)
 	if err := c.BodyParser(s); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "invalid request"})
 	}
