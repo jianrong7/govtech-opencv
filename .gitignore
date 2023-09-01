@@ -22,4 +22,6 @@ go.work
 
 tmp/
 
-.env
+*.env
+
+db_password.txt

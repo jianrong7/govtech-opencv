@@ -3,6 +3,7 @@ package main
 import (
 	"govtech-opencv/db"
 	"govtech-opencv/router"
+	"govtech-opencv/utils"
 	"log"
 
 	_ "govtech-opencv/docs"
@@ -12,14 +13,20 @@ import (
 	"github.com/gofiber/swagger"
 )
 
+func main() {
+	utils.LoadEnv()
+	db.ConnectToDB()
+	serveApp()
+}
+
 // @title govtech-opencv API
 // @version 1.0
 // @description Documentation for the govtech-opencv API
 // @host localhost:3000
 // @BasePath /
-func main() {
+func serveApp() {
 	app := fiber.New(fiber.Config{
-		Prefork:       true,
+		// Prefork:       true,
 		CaseSensitive: true,
 		ServerHeader:  "Fiber",
 		AppName:       "govtech-opencv",
@@ -27,8 +34,6 @@ func main() {
 
 	app.Use(cors.New())
 	app.Get("/swagger/*", swagger.HandlerDefault)
-
-	db.ConnectToDB()
 
 	router.SetupRoutes(app)
 
