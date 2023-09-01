@@ -48,6 +48,10 @@ paths:
           description: invalid request
           schema:
             type: string
+        "404":
+          description: no students found
+          schema:
+            type: string
       summary: Get common students from a list of teachers.
   /api/register:
     post:

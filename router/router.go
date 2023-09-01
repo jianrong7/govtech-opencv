@@ -9,7 +9,7 @@ import (
 
 func SetupRoutes(app *fiber.App) {
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World!!!")
+		return c.SendString("ping")
 	})
 
 	api := app.Group("/api", logger.New())

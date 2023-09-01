@@ -43,6 +43,12 @@ const docTemplate = `{
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    "404": {
+                        "description": "no students found",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 }
             }
