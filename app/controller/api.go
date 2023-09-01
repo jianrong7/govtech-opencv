@@ -104,7 +104,7 @@ func GetCommonStudents(c *fiber.Ctx) error {
 // @Router /api/suspend [post]
 func SuspendStudent(c *fiber.Ctx) error {
 	s := new(dto.SuspendStudentReq)
-	if err := c.BodyParser(s); err != nil {
+	if err := c.BodyParser(s); err != nil || s.Student == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "invalid request"})
 	}
 

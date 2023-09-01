@@ -159,6 +159,59 @@ func TestGetCommonStudents(t *testing.T) {
 	}
 }
 
+func TestSuspendStudent(t *testing.T) {
+	setup()
+	app := fiber.New()
+	SetupRoutes(app)
+
+	tests := []struct {
+		description   string
+		expectedError bool
+		expectedCode  int
+		requestBody   io.Reader
+		respBody      string
+	}{
+		{
+			description:   "Suspend student which exists",
+			expectedError: false,
+			expectedCode:  204,
+			requestBody:   strings.NewReader(`{"student": "studentagnes@gmail.com"}`),
+			respBody:      "",
+		},
+		{
+			description:   "Suspend a non-existent student. Should throw an error.",
+			expectedError: false,
+			expectedCode:  404,
+			requestBody:   strings.NewReader(`{"student": "nonexistentstudent@gmail.com"}`),
+			respBody:      "{\"message\":\"student not found\"}",
+		},
+		{
+			description:   "Invalid request body",
+			expectedError: false,
+			expectedCode:  400,
+			requestBody:   strings.NewReader(`{"invalid": "invalid"]}`),
+			respBody:      "{\"message\":\"invalid request\"}",
+		},
+	}
+
+	for _, test := range tests {
+		req := httptest.NewRequest("POST", "/api/suspend", test.requestBody)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req, -1)
+		body, _ := io.ReadAll(resp.Body)
+
+		assert.Equalf(t, test.expectedError, err != nil, test.description)
+
+		if test.expectedError {
+			continue
+		}
+
+		assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
+		assert.Equalf(t, test.respBody, string(body), test.description)
+	}
+}
+
 func setup() {
 	if err := godotenv.Load("../.env"); err != nil {
 		log.Fatal("Error loading .env file")
