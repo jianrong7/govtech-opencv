@@ -63,6 +63,7 @@ func Register(c *fiber.Ctx) error {
 // @Param teacher query string true "Teacher"
 // @Success 200 {object} string "students"
 // @Failure 400 {string} string "invalid request"
+// @Failure 404 {string} string "no students found"
 // @Router /api/commonstudents [get]
 func GetCommonStudents(c *fiber.Ctx) error {
 	var commonStudentEmails []string
