@@ -132,11 +132,13 @@ func RetrieveForNotifications(c *fiber.Ctx) error {
 	var validStudentsFromNotification []string
 
 	s := new(dto.RetrieveForNotificationsReq)
-	if err := c.BodyParser(s); err != nil {
+	if err := c.BodyParser(s); err != nil || s.Teacher == "" || s.Notification == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "invalid request"})
 	}
 
 	emailsFromNotification := utils.ExtractEmailsFromNotification(s.Notification)
+
+	// if there is no emails in the notification, there is no need to make a db call
 	if len(emailsFromNotification) > 0 {
 		db.DB.Raw(`SELECT DISTINCT students.email as studentEmail
 		FROM students
@@ -156,5 +158,9 @@ func RetrieveForNotifications(c *fiber.Ctx) error {
 
 	registeredStudentEmails = append(registeredStudentEmails, (validStudentsFromNotification)...)
 
-	return c.JSON(fiber.Map{"recipients": registeredStudentEmails})
+	if len(registeredStudentEmails) == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "no valid recipients found"})
+	} else {
+		return c.JSON(fiber.Map{"recipients": registeredStudentEmails})
+	}
 }

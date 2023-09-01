@@ -212,6 +212,72 @@ func TestSuspendStudent(t *testing.T) {
 	}
 }
 
+func TestRetrieveForNotifications(t *testing.T) {
+	setup()
+	app := fiber.New()
+	SetupRoutes(app)
+
+	requestBody := strings.NewReader(`{"teacher": "teacherken@gmail.com", "students": ["studentbob@gmail.com"]}`)
+	req := httptest.NewRequest("POST", "/api/register", requestBody)
+	req.Header.Set("Content-Type", "application/json")
+
+	app.Test(req, -1)
+
+	tests := []struct {
+		description   string
+		expectedError bool
+		expectedCode  int
+		requestBody   io.Reader
+		respBody      string
+	}{
+		{
+			description:   "Retrieve notifications for teacherken with mentions in notification",
+			expectedError: false,
+			expectedCode:  200,
+			requestBody:   strings.NewReader(`{"teacher": "teacherken@gmail.com", "notification": "Hello students! @studentagnes@gmail.com @studentmiche@gmail.com"}`),
+			respBody:      "{\"recipients\":[\"studentbob@gmail.com\",\"studentagnes@gmail.com\",\"studentmiche@gmail.com\"]}",
+		},
+		{
+			description:   "Retrieve notifications for teacherken without mentions in notification",
+			expectedError: false,
+			expectedCode:  200,
+			requestBody:   strings.NewReader(`{"teacher": "teacherken@gmail.com", "notification": "Hey everybody"}`),
+			respBody:      "{\"recipients\":[\"studentbob@gmail.com\"]}",
+		},
+		{
+			description:   "Invalid request body",
+			expectedError: false,
+			expectedCode:  400,
+			requestBody:   strings.NewReader(`{"invalid": "invalid"}`),
+			respBody:      "{\"message\":\"invalid request\"}",
+		},
+		{
+			description:   "Retrieve notifications for teacherben (No students)",
+			expectedError: false,
+			expectedCode:  404,
+			requestBody:   strings.NewReader(`{"teacher": "teacherben@gmail.com", "notification": "Hey everybody"}`),
+			respBody:      "{\"message\":\"no valid recipients found\"}",
+		},
+	}
+
+	for _, test := range tests {
+		req := httptest.NewRequest("POST", "/api/retrievefornotifications", test.requestBody)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req, -1)
+		body, _ := io.ReadAll(resp.Body)
+
+		assert.Equalf(t, test.expectedError, err != nil, test.description)
+
+		if test.expectedError {
+			continue
+		}
+
+		assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
+		assert.Equalf(t, test.respBody, string(body), test.description)
+	}
+}
+
 func setup() {
 	if err := godotenv.Load("../.env"); err != nil {
 		log.Fatal("Error loading .env file")
