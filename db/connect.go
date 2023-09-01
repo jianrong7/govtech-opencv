@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-var teacherEmails []string = []string{"teacherken@gmail.com", "teacherjoe@gmail.com"}
+var teacherEmails []string = []string{"teacherken@gmail.com", "teacherjoe@gmail.com", "teacherben@gmail.com"}
 var studentEmails []string = []string{"studentjon@gmail.com", "studenthon@gmail.com", "studentagnes@gmail.com", "commonstudent1@gmail.com", "commonstudent2@gmail.com", "student_only_under_teacher_ken@gmail.com"}
 
 func seedTeachersTable() {
@@ -29,17 +29,25 @@ func seedStudentsTable() {
 	}
 }
 
-func ConnectToDB() {
+func ConnectToDB(isLogSilent bool) {
+	var logLevel logger.LogLevel
+	if !isLogSilent {
+		logLevel = logger.Info
+	} else {
+		logLevel = logger.Silent
+	}
+	var err error
+
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{
 			SlowThreshold:             time.Second, // Slow SQL threshold
-			LogLevel:                  logger.Info, // Log level
+			LogLevel:                  logLevel,    // Log level
 			IgnoreRecordNotFoundError: true,        // Ignore ErrRecordNotFound error for logger
 			Colorful:                  true,        // Disable color
 		},
 	)
-	var err error
+
 	dsn := os.Getenv("DB_URI")
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: newLogger})
 

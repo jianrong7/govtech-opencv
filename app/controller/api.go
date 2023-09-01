@@ -24,7 +24,7 @@ import (
 // @Router /api/register [post]
 func Register(c *fiber.Ctx) error {
 	s := new(dto.RegisterReq)
-	if err := c.BodyParser(s); err != nil {
+	if err := c.BodyParser(s); err != nil || len(s.Students) == 0 || s.Teacher == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "invalid request"})
 	}
 
@@ -52,9 +52,7 @@ func Register(c *fiber.Ctx) error {
 			student.Teachers = append(student.Teachers, teacher)
 			db.DB.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&student)
 		}
-
 	}
-
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
@@ -70,23 +68,28 @@ func GetCommonStudents(c *fiber.Ctx) error {
 	var commonStudentEmails []string
 
 	queryString := string(c.Request().URI().QueryString())
+	if queryString == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "no teacher indicated"})
+	}
 	queryString = strings.Replace(queryString, "teacher=", "", -1)
 	queryString = strings.Replace(queryString, "%40", "@", -1)
 	teacherEmails := strings.Split(queryString, "&")
 
-	if len(teacherEmails) == 0 {
-		return c.JSON(fiber.Map{"students": commonStudentEmails})
-	}
-
-	db.DB.Raw(`SELECT DISTINCT students.email as studentEmail
+	db.DB.Raw(`SELECT students.email as studentEmail
 		FROM students
 		JOIN teacher_students ON students.id = teacher_students.student_id
 		JOIN teachers ON teacher_students.teacher_id = teachers.id
-		WHERE teachers.email in ?
+		WHERE teachers.email IN ?
 		AND students.deleted_at IS NULL
-		AND teachers.deleted_at IS NULL`, teacherEmails).Scan(&commonStudentEmails)
+		AND teachers.deleted_at IS NULL
+		GROUP BY studentEmail
+		HAVING COUNT(DISTINCT teachers.email) = ?`, teacherEmails, len(teacherEmails)).Scan(&commonStudentEmails)
 
-	return c.JSON(fiber.Map{"students": commonStudentEmails})
+	if len(commonStudentEmails) == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "no students found"})
+	} else {
+		return c.JSON(fiber.Map{"students": commonStudentEmails})
+	}
 }
 
 // Suspend a student. If student does not exist, return 404.

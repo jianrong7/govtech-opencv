@@ -15,7 +15,7 @@ import (
 
 func main() {
 	utils.LoadEnv()
-	db.ConnectToDB()
+	db.ConnectToDB(false)
 	serveApp()
 }
 
